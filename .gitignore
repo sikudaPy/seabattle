@@ -30,3 +30,4 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+seabattle/__pycache__/settings.cpython-313.pyc
