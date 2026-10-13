@@ -31,3 +31,4 @@ share/python-wheels/
 *.egg
 MANIFEST
 seabattle/__pycache__/settings.cpython-313.pyc
+game/__pycache__/__init__.cpython-313.pyc
