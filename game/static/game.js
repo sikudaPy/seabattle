@@ -2,7 +2,7 @@
        Константы и конфигурация игры
        ========================================================================== */
     const BOARD_SIZE = 10;
-    const LETTERS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
+    const LETTERS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'] //, 'Л', 'М', 'Н', 'О', 'П'];
     
     // Классический флот: 1x4, 2x3, 3x2, 4x1
     const SHIP_SPECS = [
@@ -417,8 +417,8 @@
         this.aiBoard = new Board();
         this.ai = new BattleshipAI(this.playerBoard);
 
-        this.gameState = 'SETUP'; // 'SETUP', 'BATTLE', 'GAMEOVER'
-        this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI'
+        this.gameState = 'SETUP'; // 'SETUP', 'BATTLE', 'BATTLE_HUMAN', 'GAMEOVER'
+        this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI', 'PLAYER2'
         
         // Переменные фазы расстановки
         this.isHorizontal = true;
@@ -854,13 +854,88 @@
         if (isPlayerWon) {
           this.modalTitle.textContent = 'ПОБЕДА!';
           this.modalTitle.className = 'modal-title win';
-          this.modalMsg.textContent = 'Поздравляем! Вы разгромили флот противника!';
+          this.modalMsg.textContent = 'Вы достойны славы адмирала Ушакова, но императора Павла убьют и Россия не воспользуется вашими победами!';
         } else {
           this.modalTitle.textContent = 'ПОРАЖЕНИЕ!';
           this.modalTitle.className = 'modal-title lose';
-          this.modalMsg.textContent = 'Ваш флот потоплен. В этот раз искусственный интеллект победил.';
+          this.modalMsg.textContent = 'Вы адмирал Рождественский потопивший свой флот в Цусиме! Что не удивительно ведь казнократство во флоте не интересовало императора Николай 2!';
         }
         this.modal.classList.add('active');
+      }
+
+      //Основная игра между людьми по sockets
+      gameHumans(){
+        let url = "ws://"+window.location.host+"/ws/socket-server"
+        shipSocket= new WebSocket(url)
+
+        shipSocket.onmessage = function(e){
+          const data = JSON.parse(e.data);
+          console.log('Data:',data)
+          
+          //Подключение к игре
+          if(data.type=="Connected"){
+              shipSocket.send(JSON.stringify({
+                  "type":"begin",
+                  "name": playerName,
+                  "ships": [],
+              }))
+          }
+
+          //Ожидание хода другого игрока
+          else if(data.type=="Queue"){
+              showLoading();
+          }
+
+          //Инициализация игры
+          else if(data.type=="Start"){
+              
+          }
+
+          ///Проверка попадания хода 
+          else if(data.type=="opponent_move"){
+              if(data.hit){
+              }
+              else{
+              } 
+          }
+
+          //Проверка попадания оппонентом
+          else if(data.type=="ack_hit"){
+
+              if(data.hit){
+              }
+              else{
+              }
+          }
+
+          //Если Вы выиграли
+          else if(data.type=="win"){
+              shipSocket.close(1000, "win")
+          }
+          //Если Вы проиграли
+          else if(data.type=="lost"){
+              shipSocket.close(1000, "lost")
+          }
+          //Переключение на Ваш ход
+          else if(data.type=="turn_on"){
+          }
+          //Переключение на ход оппонента
+          else if(data.type=="turn_off"){
+          }
+
+          //Отключение сервера или другого игрока
+          else if(data.type=="Disconnected"){
+          }
+
+          //Тестирование
+          else if(data.type="O"){
+              comsole.log("OOOOOO ha vinto il ")
+          }
+        }
+
+        shipSocket.onclose = function(event) {
+          console.log(`Connessione chiusa: codice = ${event.code}, motivo = ${event.reason}`);
+        }  
       }
     }
 

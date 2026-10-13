@@ -1,0 +1,456 @@
+:root {
+      --bg-color: #0b192c;
+      --card-bg: #1e3e62;
+      --board-bg: #001f3f;
+      --cell-border: #185a9d;
+      --accent-color: #00adb5;
+      --accent-hover: #00fff5;
+      --text-main: #f5f5f5;
+      --text-muted: #a0b2c6;
+      --cell-hover: rgba(0, 173, 181, 0.35);
+      --cell-invalid: rgba(255, 65, 54, 0.45);
+      --ship-color: #387780;
+      --ship-border: #56cbf9;
+      --hit-color: #ff4136;
+      --miss-color: #7fdbff;
+      --sunk-color: #85144b;
+      --cell-size: 36px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at 50% 20%, #1a365d, #09131f 80%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #00fff5;
+      letter-spacing: 2px;
+      text-shadow: 0 0 16px rgba(0, 255, 245, 0.4);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 980px;
+    }
+
+    .status-panel {
+      background: rgba(30, 62, 98, 0.7);
+      border: 1px solid rgba(0, 255, 245, 0.3);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-align: center;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 600px;
+      transition: all 0.3s;
+    }
+
+    .status-panel.turn-player {
+      border-color: #00fff5;
+      color: #e6ffff;
+    }
+
+    .status-panel.turn-ai {
+      border-color: #ff851b;
+      color: #ffe8cc;
+    }
+
+    .controls-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(135deg, #008080, #005a70);
+      color: #fff;
+      border: 1px solid #00fff5;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #00adb5, #008080);
+      box-shadow: 0 0 12px rgba(0, 255, 245, 0.5);
+      transform: translateY(-1px);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: gray;
+    }
+
+    button.btn-primary {
+      background: linear-gradient(135deg, #2ecc40, #208b2c);
+      border-color: #7bff8a;
+    }
+    button.btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #37e64c, #2ecc40);
+      box-shadow: 0 0 14px rgba(46, 204, 64, 0.6);
+    }
+
+    .boards-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 36px;
+      width: 100%;
+    }
+
+    .board-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(14, 34, 56, 0.75);
+      border: 1px solid #1f4e79;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .board-title {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .board-grid-wrapper {
+      position: relative;
+      display: grid;
+      grid-template-columns: 28px calc(var(--cell-size) * 10);
+      grid-template-rows: 28px calc(var(--cell-size) * 10);
+    }
+
+    .grid-corner {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .col-labels {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      height: 28px;
+    }
+
+    .col-label {
+      width: var(--cell-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .row-labels {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      width: 28px;
+    }
+
+    .row-label {
+      height: var(--cell-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .board {
+      grid-column: 2;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: repeat(10, var(--cell-size));
+      grid-template-rows: repeat(10, var(--cell-size));
+      background-color: var(--board-bg);
+      border: 2px solid var(--cell-border);
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border: 1px solid rgba(24, 90, 157, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      position: relative;
+      transition: background-color 0.15s ease;
+    }
+
+    /* Интерактив на поле противника во время боя */
+    .battle-active #ai-board .cell:not(.hit):not(.miss):not(.sunk) {
+      cursor: crosshair;
+    }
+    .battle-active #ai-board .cell:not(.hit):not(.miss):not(.sunk):hover {
+      background-color: var(--cell-hover);
+    }
+
+    /* Подсветка расстановки игрока */
+    .setup-active #player-board .cell {
+      cursor: pointer;
+    }
+    .cell.preview-valid {
+      background-color: rgba(46, 204, 64, 0.45) !important;
+    }
+    .cell.preview-invalid {
+      background-color: rgba(255, 65, 54, 0.5) !important;
+    }
+
+    /* Оформление кораблей и выстрелов */
+    .cell.ship {
+      background: linear-gradient(135deg, #1c658c, #398ab9);
+      box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.3);
+    }
+
+    .cell.miss::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background-color: var(--miss-color);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--miss-color);
+    }
+
+    .cell.hit {
+      background: radial-gradient(circle, #ff4136 30%, #85144b 90%);
+      color: #fff;
+    }
+    .cell.hit::before, .cell.hit::after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 3px;
+      background-color: #fff;
+      border-radius: 2px;
+    }
+    .cell.hit::before { transform: rotate(45deg); }
+    .cell.hit::after { transform: rotate(-45deg); }
+
+    .cell.sunk {
+      background: #500a2b !important;
+      animation: flash-sunk 0.4s ease;
+    }
+    .cell.sunk::before, .cell.sunk::after {
+      content: '';
+      position: absolute;
+      width: 65%;
+      height: 4px;
+      background-color: #ff4136;
+      border-radius: 2px;
+    }
+    .cell.sunk::before { transform: rotate(45deg); }
+    .cell.sunk::after { transform: rotate(-45deg); }
+
+    @keyframes flash-sunk {
+      0% { transform: scale(1.15); filter: brightness(2); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    /* Панель доступных кораблей при расстановке */
+    .placement-dock {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .dock-title {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .dock-ships {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .dock-ship {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dock-ship:hover:not(.disabled) {
+      border-color: var(--accent-color);
+      background: rgba(0, 173, 181, 0.15);
+    }
+
+    .dock-ship.selected {
+      border-color: #00fff5;
+      background: rgba(0, 255, 245, 0.25);
+      box-shadow: 0 0 10px rgba(0, 255, 245, 0.4);
+    }
+
+    .dock-ship.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .dock-ship-visual {
+      display: flex;
+      gap: 2px;
+    }
+
+    .dock-deck {
+      width: 16px;
+      height: 16px;
+      background: #398ab9;
+      border-radius: 2px;
+    }
+
+    .dock-count {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #00fff5;
+      margin-left: 4px;
+    }
+
+    /* Модальное окно победы/поражения */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #1e3e62;
+      border: 2px solid var(--accent-color);
+      border-radius: 14px;
+      padding: 30px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .modal-title.win { color: #2ecc40; }
+    .modal-title.lose { color: #ff4136; }
+
+    .modal-msg {
+      margin-bottom: 24px;
+      font-size: 1.1rem;
+      color: #e0e0e0;
+    }
+
+    /* Статистика флота во время боя */
+    .fleet-status {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 860px) {
+      :root {
+        --cell-size: 30px;
+      }
+      .boards-wrapper {
+        gap: 20px;
+      }
+      header h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --cell-size: 27px;
+      }
+    }
+
+    
