@@ -91,9 +91,18 @@
   <!-- Модальное окно победы/поражения -->
   <div class="modal-overlay" id="endgame-modal">
     <div class="modal-box">
-      <h2 class="modal-title" id="modal-title">Победа!</h2>
-      <p class="modal-msg" id="modal-msg">Вы потопили весь флот противника!</p>
+      <h2 class="modal-title" id="modal-title">Победа/Поражение!</h2>
+      <p class="modal-msg" id="modal-msg">Вы или Вас потопили весь флот!</p>
       <button class="btn-primary" id="btn-modal-restart">Играть снова</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно ожидания хода человека -->
+  <div class="modal-overlay" id="waiting-modal">
+    <div class="modal-box">
+      <h2 class="modal-title" id="wmodal-title">Ожидаем хода Вашего противника</h2>
+      <p class="modal-msg" id="wmodal-msg">Спокойно ожидайте ход соперника... 'По требованию общественности комиссия расследовавшая злоупотребления на флоте выявила недостачу в размере астрономической суммы в 30 миллионов рублей, и еще 2 миллиона по линии Красного креста. Однако никакого наказания Алексей Александрович так и не понес, а скончался от пневмонии в собственном особняке в Париже в 1908 году.'</p>
+      <button class="btn-primary" id="btn-wait-restart">Прервать игру</button>
     </div>
   </div>
 <script type="application/javascript" src="{% static 'game.js' %}"></script>

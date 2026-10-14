@@ -419,6 +419,7 @@
 
         this.gameState = 'SETUP'; // 'SETUP', 'BATTLE', 'BATTLE_HUMAN', 'GAMEOVER'
         this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI', 'PLAYER2'
+        this.fSecondPlayerHuman = false; 
         
         // Переменные фазы расстановки
         this.isHorizontal = true;
@@ -441,11 +442,18 @@
         this.playerScoreEl = document.getElementById('player-score');
         this.aiScoreEl = document.getElementById('ai-score');
 
+        //model end game
         this.modal = document.getElementById('endgame-modal');
         this.modalTitle = document.getElementById('modal-title');
         this.modalMsg = document.getElementById('modal-msg');
-        this.btnModalRestart = document.getElementById('btn-modal-restart');
 
+        //model waiting human
+        this.WaitModal = document.getElementById('waiting-modal');
+        this.WaitModalTitle = document.getElementById('wmodal-title');
+        this.WaitModalMsg = document.getElementById('wmodal-msg');
+
+        this.btnModalRestart = document.getElementById('btn-modal-restart');
+        this.btnWaitRestart = document.getElementById('btn-wait-restart');  
         this.init();
       }
 
@@ -519,11 +527,13 @@
         });
 
         this.btnStart.addEventListener('click', () => {
+          this.fSecondPlayerHuman = false;
           sound.init();
           this.startBattle();
         });
 
         this.btnStartB.addEventListener('click', () => {
+          this.fSecondPlayerHuman = true;
           sound.init();
           this.startBattle();
         });
@@ -536,6 +546,12 @@
         this.btnModalRestart.addEventListener('click', () => {
           sound.init();
           this.modal.classList.remove('active');
+          this.resetToSetup();
+        });
+
+        this.btnWaitRestart.addEventListener('click', () => {
+          sound.init();
+          this.WaitModal.classList.remove('active');
           this.resetToSetup();
         });
 
@@ -802,6 +818,11 @@
       aiTurn() {
         if (this.gameState !== 'BATTLE' || this.currentTurn !== 'AI') return;
 
+        if(this.fSecondPlayerHuman){
+            this.WaitModalTitle.textContent = 'Ожидаем хода соперника!';
+            this.WaitModalMsg.textContent = 'Интересная информация...';
+            this.WaitModal.classList.add('active');  
+        }
         const shot = this.ai.getNextShot();
         const attackResult = this.playerBoard.receiveAttack(shot.r, shot.c);
         this.ai.processResult(shot, attackResult);
