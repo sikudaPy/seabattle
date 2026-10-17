@@ -591,7 +591,8 @@
         this.btnRandomPlayer.style.display = 'inline-block';
         this.btnReset.style.display = 'inline-block';
         this.btnStart.style.display = 'inline-block';
-        this.btnStartB.style.display = 'inline-block';
+        //disable 
+        this.btnStartB.style.display = 'none';  
         this.btnNewGame.style.display = 'none';
         this.placementDock.style.display = 'flex';
 

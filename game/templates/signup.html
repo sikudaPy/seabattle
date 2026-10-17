@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signup</title>
+    <style>
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="center">
+    <form method="post">
+        <h2>Зарегистрироваться</h2>
+        <br>
+        {% csrf_token %}  <!-- Обязательно для защиты от CSRF-атак -->
+        <label for="username">Имя пользователя:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password1" name="password1" required>
+        <br><br>
+        <label for="password">Пароль еще раз:</label>
+        <input type="password" id="password2" name="password2" required>
+        <br><br>
+        <button type="submit">Регистрация</button>
+    </form>
+</body>
+</html>
