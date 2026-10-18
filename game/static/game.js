@@ -591,8 +591,7 @@
         this.btnRandomPlayer.style.display = 'inline-block';
         this.btnReset.style.display = 'inline-block';
         this.btnStart.style.display = 'inline-block';
-        //disable 
-        this.btnStartB.style.display = 'none';  
+        this.btnStartB.style.display = 'inline-block';  
         this.btnNewGame.style.display = 'none';
         this.placementDock.style.display = 'flex';
 
@@ -759,9 +758,6 @@
         document.getElementById('app').classList.remove('setup-active');
         document.getElementById('app').classList.add('battle-active');
 
-        // Расставляем корабли ИИ
-        this.aiBoard.placeRandomFleet();
-
         // Скрываем инструменты расстановки
         this.btnRotate.style.display = 'none';
         this.btnRandomPlayer.style.display = 'none';
@@ -774,6 +770,10 @@
         this.currentTurn = 'PLAYER';
         this.setStatus('Ваш ход! Выберите клетку на поле противника.', 'player');
         this.updateScores();
+
+        if(this.fSecondPlayerHuman) gameHumans()  
+        else // Расставляем корабли ИИ
+          this.aiBoard.placeRandomFleet();
       }
 
       setStatus(text, turnType = 'player') {
@@ -893,24 +893,17 @@
         shipSocket.onmessage = function(e){
           const data = JSON.parse(e.data);
           console.log('Data:',data)
-          
-          //Подключение к игре
-          if(data.type=="Connected"){
-              shipSocket.send(JSON.stringify({
-                  "type":"begin",
-                  "name": playerName,
-                  "ships": [],
-              }))
-          }
 
           //Ожидание хода другого игрока
-          else if(data.type=="Queue"){
-              showLoading();
+          if(data.type=="Queue"){
+            this.WaitModalTitle.textContent = 'Ожидаем входа соперника в игру!';
+            this.WaitModalMsg.textContent = 'Интересная информация...';
+            this.WaitModal.classList.add('active');
           }
 
           //Инициализация игры
           else if(data.type=="Start"){
-              
+            this.WaitModal.classList.remove('active');   
           }
 
           ///Проверка попадания хода 
@@ -931,32 +924,23 @@
           }
 
           //Если Вы выиграли
-          else if(data.type=="win"){
-              shipSocket.close(1000, "win")
-          }
+          // else if(data.type=="win"){
+          //     shipSocket.close(1000, "win")
+          // }
           //Если Вы проиграли
           else if(data.type=="lost"){
+              shipSocket.send(JSON.stringify({"type":"you_win"}))
               shipSocket.close(1000, "lost")
-          }
-          //Переключение на Ваш ход
-          else if(data.type=="turn_on"){
-          }
-          //Переключение на ход оппонента
-          else if(data.type=="turn_off"){
           }
 
           //Отключение сервера или другого игрока
           else if(data.type=="Disconnected"){
-          }
-
-          //Тестирование
-          else if(data.type="O"){
-              comsole.log("OOOOOO ha vinto il ")
+            shipSocket.close(1000)
           }
         }
 
         shipSocket.onclose = function(event) {
-          console.log(`Connessione chiusa: codice = ${event.code}, motivo = ${event.reason}`);
+          console.log(`Close: code = ${event.code}, reason = ${event.reason}`);
         }  
       }
     }
