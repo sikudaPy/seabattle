@@ -419,7 +419,8 @@
 
         this.gameState = 'SETUP'; // 'SETUP', 'BATTLE', 'BATTLE_HUMAN', 'GAMEOVER'
         this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI', 'PLAYER2'
-        this.fSecondPlayerHuman = false; 
+        this.fSecondPlayerHuman = false;
+        this.shipSocket = false 
         
         // Переменные фазы расстановки
         this.isHorizontal = true;
@@ -570,6 +571,13 @@
       }
 
       resetToSetup() {
+
+        if( this.shipSocket ){
+          this.shipSocket.close()
+          this.shipSocket = false
+          this.WaitModal.classList.remove('active');
+        } 
+
         this.gameState = 'SETUP';
         document.getElementById('app').classList.remove('battle-active');
         document.getElementById('app').classList.add('setup-active');
@@ -771,7 +779,7 @@
         this.setStatus('Ваш ход! Выберите клетку на поле противника.', 'player');
         this.updateScores();
 
-        if(this.fSecondPlayerHuman) gameHumans()  
+        if(this.fSecondPlayerHuman) this.shipSocket = this.initSocket( this )  
         else // Расставляем корабли ИИ
           this.aiBoard.placeRandomFleet();
       }
@@ -821,7 +829,7 @@
 
         if(this.fSecondPlayerHuman){
             this.WaitModalTitle.textContent = 'Ожидаем хода соперника!';
-            this.WaitModalMsg.textContent = 'Интересная информация...';
+            this.WaitModalMsg.textContent = 'Александр Иванович привык ждать на своей лодке «С-13» часами и сутками выслеживая конвои противника';
             this.WaitModal.classList.add('active');  
         }
         const shot = this.ai.getNextShot();
@@ -872,80 +880,83 @@
         return false;
       }
 
+      //'Вы достойны славы адмирала Ушакова, но императора Павла убьют и Россия не воспользуется вашими победами в Италии!'
+      //'Вы адмирал Рождественский потопивший свой флот в Цусиме! Что не удивительно, ведь казнокрадство во флоте не интересовало императора Николай 2!';  
+
       showEndgame(isPlayerWon) {
         if (isPlayerWon) {
           this.modalTitle.textContent = 'ПОБЕДА!';
           this.modalTitle.className = 'modal-title win';
-          this.modalMsg.textContent = 'Вы достойны славы адмирала Ушакова, но императора Павла убьют и Россия не воспользуется вашими победами!';
+          this.modalMsg.textContent = '-';
         } else {
           this.modalTitle.textContent = 'ПОРАЖЕНИЕ!';
           this.modalTitle.className = 'modal-title lose';
-          this.modalMsg.textContent = 'Вы адмирал Рождественский потопивший свой флот в Цусиме! Что не удивительно ведь казнократство во флоте не интересовало императора Николай 2!';
+          this.modalMsg.textContent = '';
         }
         this.modal.classList.add('active');
       }
 
-      //Основная игра между людьми по sockets
-      gameHumans(){
-        let url = "ws://"+window.location.host+"/ws/socket-server"
-        shipSocket= new WebSocket(url)
+      //Основные сообщения для игры между людьми по sockets
+    initSocket( gameui ){
+    let url = "ws://"+window.location.host+"/ws/socket-server"
+    let shipSocket= new WebSocket(url)
+    
+    shipSocket.onmessage = function(e){
+      const data = JSON.parse(e.data);
+      console.log('Data:',data)
 
-        shipSocket.onmessage = function(e){
-          const data = JSON.parse(e.data);
-          console.log('Data:',data)
+      //Ожидание хода другого игрока
+      if(data.type=="Queue"){
+        gameui.WaitModalTitle.textContent = 'Ожидаем соперника!';
+        gameui.WaitModalMsg.textContent = 'А великого князя Алексея Александровича народ прозвал «князь Цусимский, укравший больше, чем утопили японцы». Из-за катастрофического поражения русского флота в Цусимском сражении (1905) и коррупции в Морском ведомстве';
+        gameui.WaitModal.classList.add('active');
+      }
 
-          //Ожидание хода другого игрока
-          if(data.type=="Queue"){
-            this.WaitModalTitle.textContent = 'Ожидаем входа соперника в игру!';
-            this.WaitModalMsg.textContent = 'Интересная информация...';
-            this.WaitModal.classList.add('active');
-          }
+      //Очередность хода
+      else if(data.type=="turn_on"){
+        gameui.WaitModal.classList.remove('active');   
+      }
+      else if(data.type=="turn_off"){
+        gameui.WaitModal.classList.add('active');   
+      }
 
-          //Инициализация игры
-          else if(data.type=="Start"){
-            this.WaitModal.classList.remove('active');   
-          }
+      ///Проверка попадания хода 
+      else if(data.type=="hit"){
+      }
 
-          ///Проверка попадания хода 
-          else if(data.type=="opponent_move"){
-              if(data.hit){
-              }
-              else{
-              } 
-          }
+      //Проверка попадания оппонентом
+      else if(data.type=="hit_result"){
+      }
 
-          //Проверка попадания оппонентом
-          else if(data.type=="ack_hit"){
+      //Если Вы выиграли
+      else if(data.type=="win"){
+          this.close(1000, "win")
+      }
+      //Если Вы проиграли
+      else if(data.type=="lost"){
+          this.close(1000, "lost")
+      }
 
-              if(data.hit){
-              }
-              else{
-              }
-          }
-
-          //Если Вы выиграли
-          // else if(data.type=="win"){
-          //     shipSocket.close(1000, "win")
-          // }
-          //Если Вы проиграли
-          else if(data.type=="lost"){
-              shipSocket.send(JSON.stringify({"type":"you_win"}))
-              shipSocket.close(1000, "lost")
-          }
-
-          //Отключение сервера или другого игрока
-          else if(data.type=="Disconnected"){
-            shipSocket.close(1000)
-          }
-        }
-
-        shipSocket.onclose = function(event) {
-          console.log(`Close: code = ${event.code}, reason = ${event.reason}`);
-        }  
+      //Отключение сервера или другого игрока
+      else if(data.type=="Disconnected"){ 
+        gameui.WaitModalTitle.textContent = 'Соперник отключился!';
+        gameui.WaitModalMsg.textContent = 'Бежал как Керенский из Петрограда в 1917 году';
+        gameui.WaitModal.classList.add('active');
+        setTimeout(() => gameui.resetToSetup(), 3000);
+        this.close(1000)
       }
     }
 
-    // Запуск игры при загрузке документа
-    window.addEventListener('DOMContentLoaded', () => {
-      new GameUI();
-    });
+    shipSocket.onclose = function(event) {
+      console.log(`Close: code = ${event.code}, reason = ${event.reason}`);
+    }
+    return shipSocket  
+  }
+}
+
+  
+
+// Запуск игры при загрузке документа
+window.addEventListener('DOMContentLoaded', () => {
+  new GameUI();
+});

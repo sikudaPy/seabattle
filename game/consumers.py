@@ -1,11 +1,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
-from django.template.loader import render_to_string
-import threading
 
 class ShipConsumer(WebsocketConsumer):
-
-    # lock=threading.Lock()
 
     #shared between alla the instances
     Queue=''
@@ -14,90 +10,28 @@ class ShipConsumer(WebsocketConsumer):
         self.accept()
         if not ShipConsumer.Queue:
             ShipConsumer.Queue=self
-            self.send(text_data=json.dumps({ "type":"Queue"}))
             self.in_queue=True
+            self.send(text_data=json.dumps({ "type":"Queue"}))
         else:
-            self.in_queue=False
-            queuedPlayer=ShipConsumer.Queue
+            self.in_queue=False       
+            self.Opponent=ShipConsumer.Queue
             ShipConsumer.Queue=''
-            self.Opponent=queuedPlayer
-            queuedPlayer.Opponent=self   
-            self.send(text_data=json.dumps({ 
-                "type":"Start"
-            }))
+            self.Opponent.Opponent=self 
+            #Start game  
+            self.Opponent.send(text_data=json.dumps({ "type":"turn_on" }))
+            self.send(text_data=json.dumps({ "type":"turn_off" }))
 
     def receive(self, text_data):
 
         data_json=json.loads(text_data)
 
-        # if(data_json["type"]=="begin"):
+        if(data_json["type"]=="hit"):
+            self.Opponent.send(text_data=json.dumps({ "type":"hit", "hit": data_json["hit"] }))
 
-        #     # ShipConsumer.lock.acquire()
-        #     #if Queue empty, add player to queue
-        #     if not ShipConsumer.Queue:
-        #         self.name=data_json["name"]
-        #         self.shipsLocation=data_json["ships"]
-        #         ShipConsumer.Queue=self
-
-        #         # ShipConsumer.lock.release()
-
-        #         msg=json.dumps({
-        #         "type":"Queue"
-        #         })
-        #         self.send(text_data=msg)
-        #         self.in_queue=True
-            
-        #     #if queue not empty, create session
-        #     else:
-
-        #         try: 
-        #             if self.in_queue:
-        #                 self.disconnect()
-        #         except:
-        #             pass
-
-        #         self.in_queue=False
-        #         #empty queue
-        #         queuedPlayer=ShipConsumer.Queue
-        #         ShipConsumer.Queue=''
-
-        #         # ShipConsumer.lock.release()
-        #         queuedPlayer.in_queue=False
-
-        #         self.name=data_json["name"]
-        #         self.shipsLocation=data_json["ships"]
-
-        #         #send start message to both players to trigger js
-        #         playingPagePlayer1 = render_to_string('game/playing.html', {"playerName": self.name, "opponentName": queuedPlayer.name})
-        #         playingPagePlayer2 = render_to_string('game/playing.html', {"playerName": queuedPlayer.name , "opponentName": self.name})
-
-        #         diz1={
-        #             "type": "Start",
-        #             "page": playingPagePlayer1
-        #         }
-                
-        #         diz2={
-        #             "type": "Start",
-        #             "page": playingPagePlayer2
-        #         }
-
-        #         queuedPlayer.send(text_data=json.dumps(diz2))
-        #         self.send(text_data=json.dumps(diz1))
-
-        #         #set id sessions on both players
-        #         self.idSession=str(self.name+queuedPlayer.name)
-        #         queuedPlayer.idSession=self.idSession
-
-        #         #set Opponent object on both players
-        #         self.Opponent=queuedPlayer
-        #         queuedPlayer.Opponent=self
-
-        #         self.send(json.dumps({"type":"turn_on"}))
-        #         self.Opponent.send(json.dumps({"type":"turn_off"}))
-        #         self.turn=True
-        #         self.Opponent.turn=False
-
-            
+        if(data_json["type"]=="hit_result"):
+            self.Opponent.send(text_data=json.dumps({ "type":"hit_result", "hit": data_json["hit"] }))
+        
+     
         # elif (data_json["type"]=="hit"):
             
         #     if self.turn:
