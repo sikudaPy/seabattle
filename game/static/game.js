@@ -797,16 +797,27 @@
         const r = parseInt(cell.dataset.row);
         const c = parseInt(cell.dataset.col);
 
-        const attackResult = this.aiBoard.receiveAttack(r, c);
-        if (!attackResult) {
-          // Уже стреляли сюда
-          return;
+        if( this.fSecondPlayerHuman && this.shipSocket) { 
+          this.shipSocket.send(JSON.stringify({
+                "type":"hit",
+                "r": r,
+                "c": c,
+            }))
         }
+        else{
+          const attackResult = this.aiBoard.receiveAttack(r, c);
+          if (!attackResult) {
+            // Уже стреляли сюда
+            return;
+          }  
+          resultAiBoardClick(attackResult, r, c);
+        }  
+      }
 
+      resultAiBoardClick(attackResult, r, c){  
         sound.init();
         this.renderAiBoard();
         this.updateScores();
-
         if (attackResult.result === 'miss') {
           sound.miss();
           this.setStatus(`Вы промахнулись по (${LETTERS[c]}${r + 1})! Ход ИИ...`, 'ai');
@@ -920,12 +931,20 @@
         gameui.WaitModal.classList.add('active');   
       }
 
-      ///Проверка попадания хода 
+      //Проверка попадания хода 
       else if(data.type=="hit"){
+        let attackResult = gameui.playerBoard.receiveAttack(data.r, data.c);
+        shipSocket.send(JSON.stringify({
+              "type":"hit_result",
+              "result": JSON.stringify(attackResult)
+          })) 
       }
 
-      //Проверка попадания оппонентом
+      //Обработка попадания оппонентом
       else if(data.type=="hit_result"){
+        let attackResult = JSON.parse(data.result)
+        if(attackResult)    
+          gameui.resultAiBoardClick(attackResult, attackResult['r'], attackResult['c'])
       }
 
       //Если Вы выиграли

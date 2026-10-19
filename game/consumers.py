@@ -25,11 +25,13 @@ class ShipConsumer(WebsocketConsumer):
 
         data_json=json.loads(text_data)
 
+        # Выстрел
         if(data_json["type"]=="hit"):
-            self.Opponent.send(text_data=json.dumps({ "type":"hit", "hit": data_json["hit"] }))
+            self.Opponent.send(text_data=text_data)
 
+        # Результат выстрела
         if(data_json["type"]=="hit_result"):
-            self.Opponent.send(text_data=json.dumps({ "type":"hit_result", "hit": data_json["hit"] }))
+            self.Opponent.send(text_data=text_data)
         
      
         # elif (data_json["type"]=="hit"):
