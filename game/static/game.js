@@ -89,9 +89,13 @@
         this.hits = 0;
       }
 
-      isSunk() {
-        return this.hits >= this.size;
-      }
+      // isSunk() {
+      //   return this.hits >= this.size;
+      // }
+    }
+
+    function isSunk(ship){
+        return ship.hits >= ship.size;
     }
 
     class Board {
@@ -233,7 +237,7 @@
           cell.state = 'hit';
           cell.ship.hits++;
 
-          if (cell.ship.isSunk()) {
+          if (isSunk(cell.ship)) {
             cell.ship.coordinates.forEach(coord => {
               this.grid[coord.r][coord.c].state = 'sunk';
             });
@@ -258,11 +262,11 @@
       }
 
       isAllSunk() {
-        return this.ships.length > 0 && this.ships.every(s => s.isSunk());
+        return this.ships.length > 0 && this.ships.every(s => isSunk(s));
       }
 
       getAliveCount() {
-        return this.ships.filter(s => !s.isSunk()).length;
+        return this.ships.filter(s => isSunk(!s)).length;
       }
     }
 
@@ -879,22 +883,25 @@
         }
       }
 
-      checkGameOver() {
+      checkGameOver(fLost=false) {
         if (this.aiBoard.isAllSunk()) {
           this.gameState = 'GAMEOVER';
           sound.victory();
           this.showEndgame(true);
+          if(this.fSecondPlayerHuman && this.shipSocket){
+            this.shipSocket.send(JSON.stringify({"type":"you_lose"}))
+            this.shipSocket.close(1000);
+          }
           return true;
         }
 
-        if (this.playerBoard.isAllSunk()) {
+        if (fLost || this.playerBoard.isAllSunk()) {
           this.gameState = 'GAMEOVER';
           sound.defeat();
           this.renderAiBoard(true); // Открываем корабли противника
           this.showEndgame(false);
           return true;
         }
-
         return false;
       }
 
@@ -937,8 +944,18 @@
       if(data.type=="board"){
         gameui.aiBoard.clear();
         let board = JSON.parse(data.board);
-        gameui.aiBoard.grid = board.grid;
         gameui.aiBoard.ships = board.ships;
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            let cell = board.grid[r][c];
+            if( cell && cell.state ==='ship'){
+              let shipFound = gameui.aiBoard.ships.find(s => s.id === cell.ship.id)
+              gameui.aiBoard.grid[r][c] = cell;
+              gameui.aiBoard.grid[r][c]['ship']  = shipFound; 
+            }
+            else gameui.aiBoard.grid[r][c] = null;
+          }
+        }
       }
 
       //Очередность хода
@@ -953,17 +970,14 @@
 
       //Проверка попадания хода 
       else if(data.type=="hit"){
-        let attackResult = gameui.playerBoard.receiveAttack(data.r, data.c);
-        gameui.resultaiTurn(data)   
+        gameui.resultaiTurn(data);  
       }
 
-      //Если Вы выиграли
-      else if(data.type=="win"){
-          this.close(1000, "win")
-      }
       //Если Вы проиграли
-      else if(data.type=="lost"){
-          this.close(1000, "lost")
+      else if(data.type=="you_lost"){
+        gameui.WaitModal.classList.remove('active');
+        gameui.checkGameOver(true)
+        this.close(1000, "lost")
       }
 
       //Отключение сервера или другого игрока
