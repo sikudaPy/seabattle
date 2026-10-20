@@ -17,48 +17,21 @@ class ShipConsumer(WebsocketConsumer):
             self.Opponent=ShipConsumer.Queue
             ShipConsumer.Queue=''
             self.Opponent.Opponent=self 
-            #Start game  
+            #Начало игры - обмен данными
+            self.Opponent.send(text_data=json.dumps({ "type":"start" }))
+            self.send(text_data=json.dumps({ "type":"start" }))
+
+            #задаем очередность ходов
             self.Opponent.send(text_data=json.dumps({ "type":"turn_on" }))
             self.send(text_data=json.dumps({ "type":"turn_off" }))
 
     def receive(self, text_data):
 
         data_json=json.loads(text_data)
-
-        # Выстрел
-        if(data_json["type"]=="hit"):
+        #Всегда посылаем оппоненту тоже сообщение, кроме старта
+        if self.Opponent and data_json['type'] !="start":
             self.Opponent.send(text_data=text_data)
-
-        # Результат выстрела
-        if(data_json["type"]=="hit_result"):
-            self.Opponent.send(text_data=text_data)
-        
-     
-        # elif (data_json["type"]=="hit"):
-            
-        #     if self.turn:
-        #         hit_cell=data_json["cell"]
-        #         hit = False
-
-        #         if(hit_cell in self.Opponent.shipsLocation):
-                    
-        #             hit=True
-        #             self.turn=True
-        #             self.Opponent.turn=False
-        #             self.Opponent.shipsLocation.remove(hit_cell)
-                    
-        #             if not self.Opponent.shipsLocation:
-        #                 self.send(text_data=json.dumps({"type":"win"}))
-        #                 self.Opponent.send(text_data=json.dumps({"type":"lost"}))
-        #         else:
-        #             self.turn=False
-        #             self.Opponent.turn=True
-                    
-        #         self.Opponent.send(text_data=json.dumps({"type":"opponent_move", "cell": hit_cell, "hit": hit}))
-        #         self.send(text_data=json.dumps({"type":"ack_hit", "cell":hit_cell, "hit": hit}))
-
-                
-            
+         
     def disconnect(self, code):
        
         print(code)

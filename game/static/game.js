@@ -215,11 +215,13 @@
       }
 
       // Обработка выстрела: результат - 'miss', 'hit', 'sunk', или false (если уже стреляли)
-      receiveAttack(r, c) {
-        const cell = this.grid[r][c];
+      receiveAttack(r, c, cell = false) {
+        if(cell == false){
+          cell = this.grid[r][c];
 
-        if (cell === 'miss' || (cell && (cell.state === 'hit' || cell.state === 'sunk'))) {
-          return false; // Повторный выстрел
+          if (cell === 'miss' || (cell && (cell.state === 'hit' || cell.state === 'sunk'))) {
+            return false; // Повторный выстрел
+          }
         }
 
         if (cell === null) {
@@ -418,7 +420,7 @@
         this.ai = new BattleshipAI(this.playerBoard);
 
         this.gameState = 'SETUP'; // 'SETUP', 'BATTLE', 'BATTLE_HUMAN', 'GAMEOVER'
-        this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI', 'PLAYER2'
+        this.currentTurn = 'PLAYER'; // 'PLAYER', 'AI' 
         this.fSecondPlayerHuman = false;
         this.shipSocket = false 
         
@@ -797,32 +799,30 @@
         const r = parseInt(cell.dataset.row);
         const c = parseInt(cell.dataset.col);
 
+        const attackResult = this.aiBoard.receiveAttack(r, c);
+        if (!attackResult) {
+          // Уже стреляли сюда
+          return;
+        }
+        
         if( this.fSecondPlayerHuman && this.shipSocket) { 
           this.shipSocket.send(JSON.stringify({
-                "type":"hit",
+                "type": "hit",
                 "r": r,
                 "c": c,
             }))
         }
-        else{
-          const attackResult = this.aiBoard.receiveAttack(r, c);
-          if (!attackResult) {
-            // Уже стреляли сюда
-            return;
-          }  
-          resultAiBoardClick(attackResult, r, c);
-        }  
-      }
-
-      resultAiBoardClick(attackResult, r, c){  
+         
         sound.init();
         this.renderAiBoard();
         this.updateScores();
         if (attackResult.result === 'miss') {
           sound.miss();
-          this.setStatus(`Вы промахнулись по (${LETTERS[c]}${r + 1})! Ход ИИ...`, 'ai');
+          this.setStatus(`Вы промахнулись по (${LETTERS[c]}${r + 1})! Ход соперника...`, 'ai');
           this.currentTurn = 'AI';
           setTimeout(() => this.aiTurn(), 800);
+          //Замена активного игрока
+          if( this.shipSocket ) this.shipSocket.send(JSON.stringify({ "type":"turn_on" }))
         } else if (attackResult.result === 'hit') {
           sound.hit();
           this.setStatus(`Попадание по (${LETTERS[c]}${r + 1})! Вы стреляете снова.`, 'player');
@@ -840,13 +840,18 @@
 
         if(this.fSecondPlayerHuman){
             this.WaitModalTitle.textContent = 'Ожидаем хода соперника!';
-            this.WaitModalMsg.textContent = 'Александр Иванович привык ждать на своей лодке «С-13» часами и сутками выслеживая конвои противника';
+            this.WaitModalMsg.textContent = 'Александр Иванович привык ждать на своей лодке «С-13» часами и сутками, выслеживая конвои противника';
             this.WaitModal.classList.add('active');  
         }
-        const shot = this.ai.getNextShot();
-        const attackResult = this.playerBoard.receiveAttack(shot.r, shot.c);
-        this.ai.processResult(shot, attackResult);
+        else{
+          const shot = this.ai.getNextShot();
+          this.resultaiTurn(shot)
+        }  
+      }
 
+      resultaiTurn(shot){
+        const attackResult = this.playerBoard.receiveAttack(shot.r, shot.c, shot.result);
+        this.ai.processResult(shot, attackResult);
         this.renderPlayerBoard();
         this.updateScores();
 
@@ -854,17 +859,19 @@
 
         if (attackResult.result === 'miss') {
           sound.miss();
-          this.setStatus(`ИИ выстрелил в ${coordStr} и промахнулся! Ваш ход.`, 'player');
+          this.setStatus(`Соперник выстрелил в ${coordStr} и промахнулся! Ваш ход.`, 'player');
           this.currentTurn = 'PLAYER';
+          //Восстановление активности
+          if( this.fSecondPlayerHuman) this.WaitModal.classList.remove('active');
         } else if (attackResult.result === 'hit') {
           sound.hit();
-          this.setStatus(`ИИ ранил ваш корабль в ${coordStr}! ИИ делает повторный выстрел...`, 'ai');
+          this.setStatus(`Соперник ранил ваш корабль в ${coordStr}! Соперник делает повторный выстрел...`, 'ai');
           if (!this.checkGameOver()) {
             setTimeout(() => this.aiTurn(), 900);
           }
         } else if (attackResult.result === 'sunk') {
           sound.sunk();
-          this.setStatus(`ИИ потопил ваш ${attackResult.ship.size}-палубный корабль! ИИ ходит снова...`, 'ai');
+          this.setStatus(`Соперник потопил ваш ${attackResult.ship.size}-палубный корабль! Соперник ходит снова...`, 'ai');
           this.renderPlayerBoard(); // обновить ореол
           if (!this.checkGameOver()) {
             setTimeout(() => this.aiTurn(), 900);
@@ -891,18 +898,15 @@
         return false;
       }
 
-      //'Вы достойны славы адмирала Ушакова, но императора Павла убьют и Россия не воспользуется вашими победами в Италии!'
-      //'Вы адмирал Рождественский потопивший свой флот в Цусиме! Что не удивительно, ведь казнокрадство во флоте не интересовало императора Николай 2!';  
-
       showEndgame(isPlayerWon) {
         if (isPlayerWon) {
           this.modalTitle.textContent = 'ПОБЕДА!';
           this.modalTitle.className = 'modal-title win';
-          this.modalMsg.textContent = '-';
+          this.modalMsg.textContent = 'Вы достойны славы адмирала Ушакова, но императора Павла убьют и Россия не воспользуется вашими победами в Италии!';
         } else {
           this.modalTitle.textContent = 'ПОРАЖЕНИЕ!';
           this.modalTitle.className = 'modal-title lose';
-          this.modalMsg.textContent = '';
+          this.modalMsg.textContent = 'Вы адмирал Рождественский потопивший свой флот в Цусиме! Результат того, что казнокрадство во флоте не интересовало императора Николай 2!';
         }
         this.modal.classList.add('active');
       }
@@ -919,32 +923,38 @@
       //Ожидание хода другого игрока
       if(data.type=="Queue"){
         gameui.WaitModalTitle.textContent = 'Ожидаем соперника!';
-        gameui.WaitModalMsg.textContent = 'А великого князя Алексея Александровича народ прозвал «князь Цусимский, укравший больше, чем утопили японцы». Из-за катастрофического поражения русского флота в Цусимском сражении (1905) и коррупции в Морском ведомстве';
+        gameui.WaitModalMsg.textContent = '';
         gameui.WaitModal.classList.add('active');
+      }
+
+      //Получение данных соперника
+      if(data.type=="start"){
+         shipSocket.send(JSON.stringify({
+               "type":"board",
+               "board": JSON.stringify( gameui.playerBoard)
+           }))
+       }
+      if(data.type=="board"){
+        gameui.aiBoard.clear();
+        let board = JSON.parse(data.board);
+        gameui.aiBoard.grid = board.grid;
+        gameui.aiBoard.ships = board.ships;
       }
 
       //Очередность хода
       else if(data.type=="turn_on"){
-        gameui.WaitModal.classList.remove('active');   
+        gameui.WaitModal.classList.remove('active'); 
+        gameui.currentTurn = 'PLAYER'; 
       }
       else if(data.type=="turn_off"){
-        gameui.WaitModal.classList.add('active');   
+        gameui.WaitModal.classList.add('active');
+        gameui.currentTurn = 'AI';   
       }
 
       //Проверка попадания хода 
       else if(data.type=="hit"){
         let attackResult = gameui.playerBoard.receiveAttack(data.r, data.c);
-        shipSocket.send(JSON.stringify({
-              "type":"hit_result",
-              "result": JSON.stringify(attackResult)
-          })) 
-      }
-
-      //Обработка попадания оппонентом
-      else if(data.type=="hit_result"){
-        let attackResult = JSON.parse(data.result)
-        if(attackResult)    
-          gameui.resultAiBoardClick(attackResult, attackResult['r'], attackResult['c'])
+        gameui.resultaiTurn(data)   
       }
 
       //Если Вы выиграли
