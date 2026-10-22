@@ -1,11 +1,22 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth import get_user_model
 
 # Create your views here.
 def index(request):
+
     if request.user.is_authenticated:
-        return render(request, "game/index.html")
+        # User = get_user_model()
+        # # Все, кто делал запросы за последние 5 минут
+        # five_minutes_ago = timezone.now() - timedelta(minutes=5)
+        # online_users = User.objects.filter(last_activity__gte=five_minutes_ago)
+        # context = {
+        #     'online_users': online_users    
+        # }
+        return render(request, "game/index.html") #, context)
     else:
         return redirect('login/')
 
