@@ -1,46 +1,46 @@
 import json
-from channels.generic.websocket import WebsocketConsumer
+# from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 
-class ShipConsumer(WebsocketConsumer):
+class ShipConsumer(AsyncWebsocketConsumer):
 
     #shared between alla the instances
     Queue=''
 
-    def connect(self):
-        self.accept()
+    async def connect(self):
+        await self.accept()
         if not ShipConsumer.Queue:
             ShipConsumer.Queue=self
             self.in_queue=True
-            self.send(text_data=json.dumps({ "type":"Queue"}))
+            
+            await self.send(text_data=json.dumps({ "type":"Queue"}))
         else:
             self.in_queue=False       
             self.Opponent=ShipConsumer.Queue
             ShipConsumer.Queue=''
             self.Opponent.Opponent=self 
+            #await self.accept()
+
             #Начало игры - обмен данными
-            self.Opponent.send(text_data=json.dumps({ "type":"start" }))
-            self.send(text_data=json.dumps({ "type":"start" }))
+            await self.Opponent.send(text_data=json.dumps({ "type":"start" }))
+            await self.send(text_data=json.dumps({ "type":"start" }))
 
             #задаем очередность ходов
-            self.Opponent.send(text_data=json.dumps({ "type":"turn_on" }))
-            self.send(text_data=json.dumps({ "type":"turn_off" }))
+            await self.Opponent.send(text_data=json.dumps({ "type":"turn_on" }))
+            await self.send(text_data=json.dumps({ "type":"turn_off" }))
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
 
         data_json=json.loads(text_data)
         #Всегда посылаем оппоненту тоже сообщение, кроме старта
         if self.Opponent and data_json['type'] !="start":
-            self.Opponent.send(text_data=text_data)
+            await self.Opponent.send(text_data=text_data)
          
-    def disconnect(self, code):
+    async def disconnect(self, code):
        
         print(code)
         if self.in_queue:
             ShipConsumer.Queue=''
-            # try:
-            #     #ShipConsumer.lock.release()
-            # except:
-            #     pass
         else:
             if code!=1000:
                 msg=json.dumps({

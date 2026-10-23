@@ -81,8 +81,8 @@ ASGI_APPLICATION = 'seabattle.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': BASE_DIR / 'data' /'db.sqlite3',
-        'NAME': '/data/db.sqlite3'
+        'NAME': BASE_DIR / 'data' /'db.sqlite3',
+        #'NAME': '/data/db.sqlite3'
     }
 }
 

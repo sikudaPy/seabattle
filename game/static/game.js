@@ -921,8 +921,12 @@
       //Основные сообщения для игры между людьми по sockets
     initSocket( gameui ){
     let url = "ws://"+window.location.host+"/ws/socket-server"
-    let shipSocket= new WebSocket(url)
+    const shipSocket= new WebSocket(url)
     
+    shipSocket.onopen = function(e) {
+      console.log('Соединение установлено readyState:', shipSocket.readyState); // Равно 1
+    };  
+
     shipSocket.onmessage = function(e){
       const data = JSON.parse(e.data);
       console.log('Data:',data)
@@ -990,14 +994,30 @@
       }
     }
 
-    shipSocket.onclose = function(event) {
-      console.log(`Close: code = ${event.code}, reason = ${event.reason}`);
-    }
-    return shipSocket  
-  }
-}
+    // Ошибка соединения
+    shipSocket.onerror = function(error) {
+      console.error('[error]', error);
+      gameui.WaitModalTitle.textContent = 'Ошибка соединения!';
+      gameui.WaitModalMsg.textContent = 'Алё барышня, алё... Смольный не отвечает...';
+      gameui.WaitModal.classList.add('active');
+      setTimeout(() => gameui.resetToSetup(), 3000);
+    };  
 
-  
+    // Закрытие соединения
+    shipSocket.onclose = function(event) {
+      if (event.wasClean) {
+        console.log(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
+      } else {
+        console.log('[close] Обрыв соединения ${event}'); // Например, код 1006
+        gameui.WaitModalTitle.textContent = 'Ошибка закрытия!';
+        gameui.WaitModalMsg.textContent = 'Враги режут наши коммуникации, все на защиту Отечества.';
+        gameui.WaitModal.classList.add('active');
+        setTimeout(() => gameui.resetToSetup(), 3000);
+      }
+    }
+    return shipSocket;  
+  }
+}  
 
 // Запуск игры при загрузке документа
 window.addEventListener('DOMContentLoaded', () => {
