@@ -3,20 +3,33 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.utils import timezone
 from datetime import timedelta
+# from game.models import UserProfile
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
+
 
 # Create your views here.
 def index(request):
 
     if request.user.is_authenticated:
-        # User = get_user_model()
-        # # Все, кто делал запросы за последние 5 минут
-        # five_minutes_ago = timezone.now() - timedelta(minutes=5)
-        # online_users = User.objects.filter(last_activity__gte=five_minutes_ago)
-        # context = {
-        #     'online_users': online_users    
-        # }
-        return render(request, "game/index.html") #, context)
+
+        User = get_user_model()
+        list_users = []
+        allUsers = User.objects.all()  
+        keys = []
+        for user in allUsers:
+            keys.append(f"online-user-{user.id}")
+        onlineKeys = cache.get_many(keys)
+        user_id_list = []
+        for key in onlineKeys:
+            user_id_list.append(key.removeprefix("online-user-"))
+        for user in allUsers:
+            if str(user.id) in user_id_list:
+                list_users.append(user.username)    
+        context = {
+            'online_users': list_users    
+        }
+        return render(request, "game/index.html", context)
     else:
         return redirect('login/')
 
