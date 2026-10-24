@@ -10,11 +10,10 @@
         }
     </style>
 </head>
-<body class="center">
-    <form method="post">
-        {% csrf_token %}  <!-- Обязательно для защиты от CSRF-атак -->
+<body class="center">   
+    <form method="post"> 
+        {% csrf_token %} <!-- Обязательно для защиты от CSRF-атак -->
         <h2>Войти</h2>
-        <br><br>
         <label for="username">Имя пользователя:</label>
         <input type="text" id="username" name="username" required>
         <br><br>
@@ -23,6 +22,10 @@
         <br><br>
         <button type="submit">Войти</button>
         <a href="/signup/">Зарегистрироваться</a>
+        <br><br>
+        <div >
+        {{ message }}
+        </div>
     </form>
 </body>
 </html>

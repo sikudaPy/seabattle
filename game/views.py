@@ -1,11 +1,10 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
-from django.utils import timezone
-from datetime import timedelta
-# from game.models import UserProfile
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 
 
 # Create your views here.
@@ -51,7 +50,13 @@ def login_view(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = authenticate(username=username, password=password) # Проверяем учетные данные
-            if user is not None:
+            if user:
                 login(request, user)     # Выполняем вход
                 return redirect('/')  # Перенаправляем на главную страницу
+        else:
+            context = {
+                'form': form,
+                'message': "Неправильный логин или пароль"    
+            }
+            return render(request, 'login.html', context)
     return render(request, 'login.html', {'form': form})
