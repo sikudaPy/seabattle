@@ -3,18 +3,17 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.core.cache import cache
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-
+from django.contrib.auth.models import User
+from asgiref.sync import sync_to_async
 
 # Create your views here.
-def index(request):
+async def index(request):
 
     if request.user.is_authenticated:
 
-        User = get_user_model()
+        #User = get_user_model()
         list_users = []
-        allUsers = User.objects.all()  
+        allUsers = await sync_to_async(list)(User.objects.all())  
         keys = []
         for user in allUsers:
             keys.append(f"online-user-{user.id}")
@@ -51,12 +50,6 @@ def login_view(request):
             password = form.cleaned_data['password']
             user = authenticate(username=username, password=password) # Проверяем учетные данные
             if user:
-                login(request, user)     # Выполняем вход
+                login(request, user)  # Выполняем вход
                 return redirect('/')  # Перенаправляем на главную страницу
-        else:
-            context = {
-                'form': form,
-                'message': "Неправильный логин или пароль"    
-            }
-            return render(request, 'login.html', context)
     return render(request, 'login.html', {'form': form})
