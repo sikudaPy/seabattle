@@ -240,6 +240,9 @@
     .battle-active #ai-board .cell:not(.hit):not(.miss):not(.sunk) {
       cursor: crosshair;
     }
+    /* .battle-active #ai-board .cell:not(.hit):not(.miss):not(.sunk) {
+      cursor: url('target_cursor.cur') 16 16, crosshair;
+    } */
     .battle-active #ai-board .cell:not(.hit):not(.miss):not(.sunk):hover {
       background-color: var(--cell-hover);
     }
