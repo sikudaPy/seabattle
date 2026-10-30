@@ -1,10 +1,14 @@
-from django.http import HttpResponseRedirect
+import os
+
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from asgiref.sync import sync_to_async
+
+from seabattle import settings
 
 # Create your views here.
 async def index(request):
@@ -53,3 +57,14 @@ def login_view(request):
                 login(request, user)  # Выполняем вход
                 return redirect('/')  # Перенаправляем на главную страницу
     return render(request, 'login.html', {'form': form})
+
+def seabattle_1C(request):
+    filename="seabattle.erf"
+    file_path = os.path.join("", filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/octet-stream")
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+    else:
+        return redirect('/')    
