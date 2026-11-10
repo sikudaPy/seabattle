@@ -90,10 +90,12 @@
           <span>Участники:</span>
           <span id="ai-score" style="font-size: 0.9rem; color: #ff851b;">(Срач тут)</span>
         </div>
-        <textarea>просто текс</textarea>
-        <div class="placement-dock" id="placement-dock" style="display: flex;"></div>
-          <input></input>
-          <button id="btn-chat" class="btn-primary">Комментировать</button>
+        <div class="board-title" style="display: flex;">
+          <input id="chat-message-input" type="text" size="20" placeholder="Писать гадости тут"><br>
+          <input id="chat-message-submit" type="button" value="Послать">
+        </div>
+        <div>
+        <textarea id="chat-log" cols="33" rows="27" readonly>{{ last_20_chatmessages }}</textarea>
         </div>
       </div>
       

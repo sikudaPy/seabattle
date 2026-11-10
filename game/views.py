@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.core.cache import cache
 from django.contrib.auth.models import User
+from .models import ChatMessage
 from asgiref.sync import sync_to_async
 
 from seabattle import settings
@@ -27,9 +28,21 @@ async def index(request):
             user_id_list.append(key.removeprefix("online-user-"))
         for user in allUsers:
             if str(user.id) in user_id_list:
-                list_users.append(user.username)    
+                list_users.append(user.username) 
+
+        last_20_chatmessages = ''
+        list_messages = await sync_to_async(list)(ChatMessage.objects.order_by('-datetime')[:20]) 
+        for message in list_messages:
+            # Returns the object if found, or None if it doesn't exist
+            user = next((item for item in allUsers if item.id == message.user_id), None)
+            if user:
+                last_20_chatmessages += user.username + ": "+message.message+"\n"
+            else:
+                last_20_chatmessages += 'any' + ": "+message.message+"\n"            
+
         context = {
-            'online_users': list_users    
+            'online_users': list_users,
+            'last_20_chatmessages': last_20_chatmessages   
         }
         return render(request, "game/index.html", context)
     else:

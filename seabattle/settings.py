@@ -73,7 +73,11 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'seabattle.asgi.application'
 #WSGI_APPLICATION = 'seabattle.wsgi.application'
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
@@ -85,7 +89,6 @@ DATABASES = {
         #'NAME': '/data/db.sqlite3'
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators

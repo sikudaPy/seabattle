@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import ChatMessage
 
 class ShipConsumer(AsyncWebsocketConsumer):
 
@@ -57,7 +59,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
 
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        # self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        self.room_name = 'seabattle'
         self.room_group_name = f"chat_{self.room_name}"
 
         # Join room group
@@ -77,6 +80,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         username = 'anonymous'
         if self.user.is_authenticated:
             username = self.user.username
+
+        #Записать в базу
+        await ChatMessage.objects.acreate(user=self.user, datetime=datetime.now(), message=message)
 
         # Send message to room group
         await self.channel_layer.group_send(
