@@ -12,3 +12,8 @@ from django.contrib.auth.models import User
 #     def __str__(self):
 #         return f'Профиль пользователя {self.user.username}'
 
+
+class ChatMessage(models.Model):
+     user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
+     datetime = models.DateTimeField(auto_created=True,blank=True, null=True)
+     message = models.TextField(default="",blank=True)
