@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-ids4xj__(+5cav-g7#!$)z3g^cfjyt2^+gkmh1n@wd(9#*k#ve
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','seabattle-sikuda.mia0.amvera.tech']
-CSRF_TRUSTED_ORIGINS = ['https://seabattle-sikuda.mia0.amvera.tech']
+ALLOWED_HOSTS = ['127.0.0.1','seabattle-sikuda.mia0.amvera.tech','seabattle3-sikuda.mia0.amvera.tech']
+CSRF_TRUSTED_ORIGINS = ['https://seabattle-sikuda.mia0.amvera.tech','https://seabattle3-sikuda.mia0.amvera.tech']
 
 
 # Application definition
