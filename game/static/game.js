@@ -511,7 +511,7 @@
         // Поворот корабля
         this.btnRotate.addEventListener('click', () => this.toggleOrientation());
         window.addEventListener('keydown', (e) => {
-          if (this.gameState === 'SETUP' && (e.code === 'KeyR' || e.code === 'Space')) {
+          if (this.gameState === 'SETUP' && (e.code === 'KeyR')) {
             e.preventDefault();
             this.toggleOrientation();
           }
@@ -920,7 +920,7 @@
 
       //Основные сообщения для игры между людьми по sockets
     initSocket( gameui ){
-    let url = "ws://"+window.location.host+"/ws/socket-server"
+    let url = "wss://"+window.location.host+"/ws/socket-server"
     const shipSocket= new WebSocket(url)
     
     shipSocket.onopen = function(e) {
@@ -1024,7 +1024,7 @@ window.addEventListener('DOMContentLoaded', () => {
   new GameUI();
 
   const chatSocket = new WebSocket(
-        'ws://'
+        'wss://'
         + window.location.host
         + '/ws/chat/seabattle/'
     );
