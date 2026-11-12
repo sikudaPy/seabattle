@@ -920,7 +920,7 @@
 
       //Основные сообщения для игры между людьми по sockets
     initSocket( gameui ){
-    let url = "wss://"+window.location.host+"/ws/socket-server"
+    let url = "ws://"+window.location.host+"/ws/socket-server"
     const shipSocket= new WebSocket(url)
     
     shipSocket.onopen = function(e) {
@@ -1024,14 +1024,14 @@ window.addEventListener('DOMContentLoaded', () => {
   new GameUI();
 
   const chatSocket = new WebSocket(
-        'wss://'
+        'ws://'
         + window.location.host
         + '/ws/chat/seabattle/'
     );
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        document.querySelector('#chat-log').value += (data.message + '\n');
+        document.querySelector('#chat-log').value = (data.message + '\n') + document.querySelector('#chat-log').value;
     };
 
     chatSocket.onclose = function(e) {
