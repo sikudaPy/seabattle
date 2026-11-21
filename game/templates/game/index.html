@@ -88,14 +88,15 @@
       <div class="board-container" id="chat-container">
         <div class="board-title">
           <span>Участники:</span>
-          <span id="ai-score" style="font-size: 0.9rem; color: #ff851b;">(Срач тут)</span>
+          <span id="ai-score" style="font-size: 1.5rem; color: #ff851b;">(Срач тут)</span>
         </div>
         <div class="board-title" style="display: flex;">
-          <input id="chat-message-input" type="text" size="20" placeholder="Писать гадости тут"><br>
-          <input id="chat-message-submit" type="button" value="Послать">
+          <!-- input id="chat-message-input" type="text" size="18" class="chatmessage" placeholder="Писать гадости тут"><br> -->
+          <textarea id="chat-message-input" cols="20" rows="3" placeholder="Писать гадости тут"></textarea>
+          <button id="chat-message-submit" type="button" class="btn-warning btn-sm">Послать</button>
         </div>
         <div>
-        <textarea id="chat-log" cols="33" rows="27" readonly>{{ last_20_chatmessages }}</textarea>
+        <textarea id="chat-log" cols="35" rows="25" readonly>{{ last_20_chatmessages }}</textarea>
         </div>
       </div>
       
