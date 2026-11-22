@@ -509,13 +509,13 @@
 
       bindEvents() {
         // Поворот корабля
-        this.btnRotate.addEventListener('click', () => this.toggleOrientation());
-        window.addEventListener('keydown', (e) => {
-          if (this.gameState === 'SETUP' && (e.code === 'KeyR')) {
-            e.preventDefault();
-            this.toggleOrientation();
-          }
-        });
+        // this.btnRotate.addEventListener('click', () => this.toggleOrientation());
+        // window.addEventListener('keydown', (e) => {
+        //   if (this.gameState === 'SETUP' && (e.code === 'KeyR')) {
+        //     e.preventDefault();
+        //     this.toggleOrientation();
+        //   }
+        // });
 
         // Кнопки управления
         this.btnRandomPlayer.addEventListener('click', () => {
@@ -573,7 +573,7 @@
 
       toggleOrientation() {
         this.isHorizontal = !this.isHorizontal;
-        this.btnRotate.textContent = `Поворот: ${this.isHorizontal ? 'Горизонтально [R]' : 'Вертикально [R]'}`;
+        this.btnRotate.textContent = `Поворот: ${this.isHorizontal ? 'Горизонтально' : 'Вертикально'}`;
       }
 
       resetToSetup() {
